@@ -45,7 +45,13 @@ export class GroqClient implements ModelClient {
         }),
         signal: controller.signal
       });
-      if (!response.ok) throw new Error(`model request failed with status ${response.status}`);
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => null) as { error?: { message?: unknown } } | null;
+        const providerMessage = typeof errorBody?.error?.message === 'string'
+          ? errorBody.error.message.slice(0, 300)
+          : 'No provider error message was returned';
+        throw new Error(`model request failed with status ${response.status}: ${providerMessage}`);
+      }
       const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
       const content = data.choices?.[0]?.message?.content?.trim();
       if (!content) throw new Error('model returned an empty response');
