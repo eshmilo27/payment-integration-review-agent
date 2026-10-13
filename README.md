@@ -20,20 +20,22 @@ Each stage is a separate model call with a specialist prompt. The orchestrator v
 
 ## Run locally
 
-Requirements: Node.js 20+. Use either a direct Groq key or the existing resume-site Lambda proxy.
+Requirements: Node.js 20+ locally. GitHub Actions uses Node.js 24 with `actions/checkout@v5` and `actions/setup-node@v5`. Use either a direct Groq key or the existing resume-site Lambda proxy.
 
 ```bash
-cp .env.example .env
-# Option A: direct Groq access.
-GROQ_API_KEY=your-key
-# Option B: reuse the resume site's server-side key without copying it.
-RESUME_AGENT_API_URL=https://your-resume-lambda-url/
 npm install
 npm run build
-npm start
+
+# Option A: direct Groq access.
+GROQ_API_KEY=your-key npm start
+
+# Option B: reuse the resume site's server-side key without copying it.
+RESUME_AGENT_API_URL=https://your-resume-lambda-url/ npm start
 ```
 
 Open `http://localhost:8080`. Never enter real cardholder data, credentials, secrets, or production payloads.
+
+`.env.example` documents the supported environment variables; the application does not load `.env` files automatically.
 
 When `RESUME_AGENT_API_URL` is set, the app sends each bounded specialist prompt to the resume Lambda's `agent-completion` operation. The Groq key remains in the Lambda environment and is never placed in this repository, the browser, or local environment variables.
 
@@ -53,7 +55,7 @@ GitHub Actions runs build, tests, and the same deterministic checks on every pus
 
 GitHub Actions is the CI runner and control plane for this project. The `verify` job builds the TypeScript service and runs `npm test`; the orchestration test invokes the planner, payment-domain, security/compliance, reliability, test-design, and synthesis stages in order and fails if a handoff is malformed.
 
-This workflow does **not** use the GitHub MCP server. GitHub MCP is a tool interface for an AI assistant to interact with GitHub. It is not required for the application agents or for GitHub Actions. Actions runs the repository's own TypeScript orchestrator on an ephemeral runner. Open the repository's **Actions** tab, select **Agent evaluation**, and inspect the `verify` job logs to see the build and evaluation results.
+This workflow does **not** use the GitHub MCP server. GitHub MCP is a tool interface for an AI assistant to interact with GitHub. It is not required for the application agents or for GitHub Actions. Actions runs the repository's own TypeScript orchestrator on an ephemeral Node.js 24 runner. Open the repository's **Actions** tab, select **Agent evaluation**, and inspect the `verify` job logs to see the build and evaluation results. The workflow runs on pushes and pull requests and can also be started manually with **Run workflow** because it includes `workflow_dispatch`.
 
 For live model evaluation, configure a repository secret named `GROQ_API_KEY` and set the repository variable `ENABLE_LIVE_EVALUATION` to `true`. The optional job runs `npm run live:evaluate` against the committed synthetic fixtures. It never prints the key. Live evaluation consumes model quota and should be treated as advisory because model output can vary; the deterministic checks remain the recommended pull-request gate.
 
