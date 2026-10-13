@@ -41,7 +41,12 @@ export class GroqClient implements ModelClient {
             response_format: { type: 'json_object' },
             messages: [
               { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt }
+              {
+                role: 'user',
+                content: attempt === 0
+                  ? userPrompt
+                  : `${userPrompt}\nReturn compact valid JSON now. Include exactly the required fields and no markdown, commentary, or extra keys.`
+              }
             ]
           }),
           signal: controller.signal
@@ -59,6 +64,9 @@ export class GroqClient implements ModelClient {
           const providerMessage = typeof errorBody?.error?.message === 'string'
             ? errorBody.error.message.slice(0, 300)
             : 'No provider error message was returned';
+          if (response.status === 400 && /json/i.test(providerMessage) && attempt < 2) {
+            continue;
+          }
           throw new Error(`model request failed with status ${response.status}: ${providerMessage}`);
         }
         const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
