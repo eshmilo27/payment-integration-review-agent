@@ -51,6 +51,8 @@ When `RESUME_AGENT_API_URL` is set, the app sends each bounded specialist prompt
 
 GitHub Actions runs build, tests, and the same deterministic checks on every push and pull request. Optional live evaluations can be enabled with the repository variable `ENABLE_LIVE_EVALUATION=true` and the `GROQ_API_KEY` secret. The live workflow runs one complete six-call review so it remains within the Groq free-tier tokens-per-minute budget; deterministic tests cover all evaluation fixtures. The model client retries temporary `429` rate-limit responses using the provider's retry guidance. Live model evaluations should be treated as advisory because model output can vary.
 
+If a live evaluation fails with `400: Failed to validate JSON`, the model provider rejected its generated structured response before the application could validate it. This is a provider/model-output issue, not evidence that the deterministic orchestration tests failed. Review the failed job log, then rerun the workflow after the provider quota window resets or adjust the configured `GROQ_MODEL`.
+
 ## How to see orchestration in GitHub Actions
 
 GitHub Actions is the CI runner and control plane for this project. The `verify` job builds the TypeScript service and runs `npm test`; the orchestration test invokes the planner, payment-domain, security/compliance, reliability, test-design, and synthesis stages in order and fails if a handoff is malformed.
@@ -58,6 +60,13 @@ GitHub Actions is the CI runner and control plane for this project. The `verify`
 This workflow does **not** use the GitHub MCP server. GitHub MCP is a tool interface for an AI assistant to interact with GitHub. It is not required for the application agents or for GitHub Actions. Actions runs the repository's own TypeScript orchestrator on an ephemeral Node.js 24 runner. Open the repository's **Actions** tab, select **Agent evaluation**, and inspect the `verify` job logs to see the build and evaluation results. The workflow runs on pushes and pull requests and can also be started manually with **Run workflow** because it includes `workflow_dispatch`.
 
 For live model evaluation, configure a repository secret named `GROQ_API_KEY` and set the repository variable `ENABLE_LIVE_EVALUATION` to `true`. The optional job runs `npm run live:evaluate` against the committed synthetic fixtures. It never prints the key. Live evaluation consumes model quota and should be treated as advisory because model output can vary; the deterministic checks remain the recommended pull-request gate.
+
+To start a manual run:
+
+```bash
+gh workflow run ci.yml --repo eshmilo27/payment-integration-review-agent --ref master
+gh run list --repo eshmilo27/payment-integration-review-agent --workflow ci.yml --limit 1
+```
 
 ## Certificate-skill evidence
 
