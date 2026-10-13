@@ -20,17 +20,22 @@ Each stage is a separate model call with a specialist prompt. The orchestrator v
 
 ## Run locally
 
-Requirements: Node.js 20+. You can use a direct Groq key or the existing resume-site Lambda proxy.
+Requirements: Node.js 20+. Use either a direct Groq key or the existing resume-site Lambda proxy.
 
 ```bash
 cp .env.example .env
-# Either set GROQ_API_KEY, or set RESUME_AGENT_API_URL to the resume site's Lambda URL.
+# Option A: direct Groq access.
+GROQ_API_KEY=your-key
+# Option B: reuse the resume site's server-side key without copying it.
+RESUME_AGENT_API_URL=https://your-resume-lambda-url/
 npm install
 npm run build
-RESUME_AGENT_API_URL=https://your-resume-lambda-url/ npm start
+npm start
 ```
 
 Open `http://localhost:8080`. Never enter real cardholder data, credentials, secrets, or production payloads.
+
+When `RESUME_AGENT_API_URL` is set, the app sends each bounded specialist prompt to the resume Lambda's `agent-completion` operation. The Groq key remains in the Lambda environment and is never placed in this repository, the browser, or local environment variables.
 
 ## Evaluation and CI
 
@@ -44,9 +49,13 @@ Open `http://localhost:8080`. Never enter real cardholder data, credentials, sec
 
 GitHub Actions runs build, tests, and the same deterministic checks on every push and pull request. Optional live evaluations can be enabled with the repository variable `ENABLE_LIVE_EVALUATION=true` and the `GROQ_API_KEY` secret. Live model evaluations should be treated as advisory because model output can vary.
 
-### Reusing the resume-site Groq key
+## How to see orchestration in GitHub Actions
 
-The standalone app can call the resume site's Lambda proxy with `RESUME_AGENT_API_URL`. The Lambda keeps `LLM_API_KEY` in its server-side environment and forwards only bounded agent-completion requests to Groq. The key is never copied into this repository, the browser, or local environment variables.
+GitHub Actions is the CI runner and control plane for this project. The `verify` job builds the TypeScript service and runs `npm test`; the orchestration test invokes the planner, payment-domain, security/compliance, reliability, test-design, and synthesis stages in order and fails if a handoff is malformed.
+
+This workflow does **not** use the GitHub MCP server. GitHub MCP is a tool interface for an AI assistant to interact with GitHub. It is not required for the application agents or for GitHub Actions. Actions runs the repository's own TypeScript orchestrator on an ephemeral runner. Open the repository's **Actions** tab, select **Agent evaluation**, and inspect the `verify` job logs to see the build and evaluation results.
+
+For live model evaluation, configure a repository secret named `GROQ_API_KEY`, set the repository variable `ENABLE_LIVE_EVALUATION` to `true`, and update the optional job to call a live-evaluation command when you are ready to spend model quota. The deterministic checks remain the recommended pull-request gate.
 
 ## Certificate-skill evidence
 

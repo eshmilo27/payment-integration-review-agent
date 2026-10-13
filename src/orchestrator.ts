@@ -35,7 +35,7 @@ export async function runReview(input: unknown, client: ModelClient, model: stri
       client,
       STAGE_PROMPTS[stage],
       `Review this fictional integration scenario:\n${scenario}`,
-      650,
+      450,
       (value) => validateStageResult(stage, value)
     ));
   }

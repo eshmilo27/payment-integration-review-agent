@@ -11,7 +11,7 @@ const port = Number(process.env.PORT ?? 8080);
 const model = process.env.GROQ_MODEL ?? 'openai/gpt-oss-20b';
 const proxyUrl = process.env.RESUME_AGENT_API_URL;
 const client = proxyUrl
-  ? new ResumeAgentProxy(proxyUrl, fetch, 20_000, process.env.RESUME_AGENT_ORIGIN ?? 'https://shmilo-in-cloud.com')
+  ? new ResumeAgentProxy(proxyUrl)
   : new GroqClient({
     apiKey: process.env.GROQ_API_KEY ?? '',
     model,
