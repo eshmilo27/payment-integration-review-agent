@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment Integration Review Agent</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+    body { margin: 0; background: #07090d; color: #edf2ff; }
+    main { max-width: 900px; margin: auto; padding: 48px 24px; }
+    h1 { font-size: clamp(2rem, 6vw, 4rem); margin: 0 0 12px; }
+    .accent { color: #6f9cff; }
+    .lede, .hint { color: #a9b3c9; line-height: 1.6; }
+    .card { margin-top: 28px; padding: 24px; border: 1px solid #26314a; border-radius: 16px; background: #0e1420; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; }
+    textarea { width: 100%; min-height: 150px; box-sizing: border-box; resize: vertical; padding: 14px; border: 1px solid #34415c; border-radius: 10px; background: #080b12; color: inherit; font: inherit; }
+    button { margin-top: 14px; padding: 12px 18px; border: 0; border-radius: 999px; background: #3974ff; color: white; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    #status { min-height: 24px; color: #9db8ff; margin-top: 16px; }
+    #stages { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .stage { padding: 7px 10px; border: 1px solid #354360; border-radius: 999px; color: #8491ab; font-size: .9rem; }
+    .stage.active { color: white; border-color: #6f9cff; background: #182d62; }
+    .stage.done { color: #71e0a2; border-color: #276646; }
+    #results { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 22px; }
+    .result { padding: 16px; border-radius: 10px; background: #151d2c; }
+    .result.wide { grid-column: 1 / -1; border: 1px solid #354d84; }
+    .result h2 { font-size: 1rem; margin-top: 0; }
+    li { color: #b7c1d4; margin: 8px 0; line-height: 1.4; }
+    @media (max-width: 650px) { #results { grid-template-columns: 1fr; } .result.wide { grid-column: auto; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="accent">Agentic AI portfolio project</p>
+    <h1>Payment Integration Review Agent</h1>
+    <p class="lede">A multi-stage review workflow for fictional retail payment designs. Separate specialist stages analyze the scenario, then a synthesis stage creates a human-approval checklist.</p>
+    <section class="card">
+      <form id="review-form">
+        <label for="scenario">Describe a proposed payment integration</label>
+        <textarea id="scenario" maxlength="1200">A retailer wants to add contactless payments to its POS system. The terminal communicates with the POS over HTTPS, and the POS sends authorization requests to a payment gateway. Review security, reliability, and testing risks.</textarea>
+        <p class="hint">Synthetic data only. Do not submit card numbers, credentials, secrets, or production payloads.</p>
+        <button type="submit">Run agent review</button>
+      </form>
+      <div id="status" role="status" aria-live="polite"></div>
+      <div id="stages" aria-label="Review stages"></div>
+      <div id="results" hidden></div>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+[
+  {
+    "name": "contactless-pos",
+    "scenario": "A retailer wants to add contactless payments to its POS system. The terminal communicates with the POS over HTTPS, and the POS sends authorization requests to a payment gateway."
+  },
+  {
+    "name": "offline-retry",
+    "scenario": "A store keeps a short-lived offline queue when the gateway is unavailable and retries authorization after connectivity returns. Review duplicate and reconciliation risks."
+  }
+]

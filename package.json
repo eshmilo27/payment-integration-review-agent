@@ -1,0 +1,20 @@
+{
+  "name": "payment-integration-review-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A multi-stage agentic AI reviewer for fictional retail payment integrations.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "test": "npm run build && node --test tests/*.test.js",
+    "check": "npm run build && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
