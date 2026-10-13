@@ -20,14 +20,14 @@ Each stage is a separate model call with a specialist prompt. The orchestrator v
 
 ## Run locally
 
-Requirements: Node.js 20+ and a Groq API key.
+Requirements: Node.js 20+. You can use a direct Groq key or the existing resume-site Lambda proxy.
 
 ```bash
 cp .env.example .env
-# Set GROQ_API_KEY in .env or export it in your shell.
+# Either set GROQ_API_KEY, or set RESUME_AGENT_API_URL to the resume site's Lambda URL.
 npm install
 npm run build
-GROQ_API_KEY=your-key npm start
+RESUME_AGENT_API_URL=https://your-resume-lambda-url/ npm start
 ```
 
 Open `http://localhost:8080`. Never enter real cardholder data, credentials, secrets, or production payloads.
@@ -43,6 +43,10 @@ Open `http://localhost:8080`. Never enter real cardholder data, credentials, sec
 - malformed model output handling
 
 GitHub Actions runs build, tests, and the same deterministic checks on every push and pull request. Optional live evaluations can be enabled with the repository variable `ENABLE_LIVE_EVALUATION=true` and the `GROQ_API_KEY` secret. Live model evaluations should be treated as advisory because model output can vary.
+
+### Reusing the resume-site Groq key
+
+The standalone app can call the resume site's Lambda proxy with `RESUME_AGENT_API_URL`. The Lambda keeps `LLM_API_KEY` in its server-side environment and forwards only bounded agent-completion requests to Groq. The key is never copied into this repository, the browser, or local environment variables.
 
 ## Certificate-skill evidence
 

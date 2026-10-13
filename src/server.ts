@@ -4,14 +4,19 @@ import { extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GroqClient } from './groq.js';
 import { runReview } from './orchestrator.js';
+import { ResumeAgentProxy } from './resume-proxy.js';
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'public');
 const port = Number(process.env.PORT ?? 8080);
-const client = new GroqClient({
-  apiKey: process.env.GROQ_API_KEY ?? '',
-  model: process.env.GROQ_MODEL ?? 'openai/gpt-oss-20b',
-  apiUrl: process.env.GROQ_API_URL ?? 'https://api.groq.com/openai/v1/chat/completions'
-});
+const model = process.env.GROQ_MODEL ?? 'openai/gpt-oss-20b';
+const proxyUrl = process.env.RESUME_AGENT_API_URL;
+const client = proxyUrl
+  ? new ResumeAgentProxy(proxyUrl, fetch, 20_000, process.env.RESUME_AGENT_ORIGIN ?? 'https://shmilo-in-cloud.com')
+  : new GroqClient({
+    apiKey: process.env.GROQ_API_KEY ?? '',
+    model,
+    apiUrl: process.env.GROQ_API_URL ?? 'https://api.groq.com/openai/v1/chat/completions'
+  });
 
 const contentTypes: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
 
@@ -26,7 +31,7 @@ createServer(async (request, response) => {
     let body = '';
     for await (const chunk of request) body += chunk;
     try {
-      const result = await runReview(JSON.parse(body), client, process.env.GROQ_MODEL ?? 'openai/gpt-oss-20b');
+      const result = await runReview(JSON.parse(body), client, model);
       response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(result));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'review failed';
