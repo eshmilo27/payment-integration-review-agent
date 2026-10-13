@@ -55,7 +55,7 @@ GitHub Actions is the CI runner and control plane for this project. The `verify`
 
 This workflow does **not** use the GitHub MCP server. GitHub MCP is a tool interface for an AI assistant to interact with GitHub. It is not required for the application agents or for GitHub Actions. Actions runs the repository's own TypeScript orchestrator on an ephemeral runner. Open the repository's **Actions** tab, select **Agent evaluation**, and inspect the `verify` job logs to see the build and evaluation results.
 
-For live model evaluation, configure a repository secret named `GROQ_API_KEY`, set the repository variable `ENABLE_LIVE_EVALUATION` to `true`, and update the optional job to call a live-evaluation command when you are ready to spend model quota. The deterministic checks remain the recommended pull-request gate.
+For live model evaluation, configure a repository secret named `GROQ_API_KEY` and set the repository variable `ENABLE_LIVE_EVALUATION` to `true`. The optional job runs `npm run live:evaluate` against the committed synthetic fixtures. It never prints the key. Live evaluation consumes model quota and should be treated as advisory because model output can vary; the deterministic checks remain the recommended pull-request gate.
 
 ## Certificate-skill evidence
 

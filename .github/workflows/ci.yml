@@ -30,7 +30,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Check live evaluation configuration
+      - name: Run live agent evaluation
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: test -n "$GROQ_API_KEY"
+        run: npm run live:evaluate
