@@ -68,6 +68,37 @@ gh workflow run ci.yml --repo eshmilo27/payment-integration-review-agent --ref m
 gh run list --repo eshmilo27/payment-integration-review-agent --workflow ci.yml --limit 1
 ```
 
+### Run delegated specialist agents
+
+The separate `Delegated agent review` workflow demonstrates asynchronous multi-agent delegation. It starts five independent specialist jobs in parallel:
+
+- planner
+- payment-domain
+- security/compliance
+- reliability
+- test-design
+
+Each job makes one Groq call, validates its JSON result, and uploads a stage artifact. The dependent synthesis job downloads those artifacts, validates the handoffs, makes the final model call, and uploads `final-review.json`.
+
+To run it from the GitHub CLI:
+
+```bash
+gh workflow run agent-review.yml \
+  --repo eshmilo27/payment-integration-review-agent \
+  --ref master \
+  -f review_id=contactless-demo \
+  -f scenario='A retailer wants to add contactless payments to its POS system over HTTPS.'
+```
+
+Then inspect the run and download its artifacts:
+
+```bash
+gh run list --repo eshmilo27/payment-integration-review-agent --workflow agent-review.yml --limit 1
+gh run download RUN_ID --repo eshmilo27/payment-integration-review-agent
+```
+
+This workflow requires the `GROQ_API_KEY` repository secret. It is intended for demonstrations, batch reviews, and evaluation—not synchronous requests from the resume website. GitHub Actions executes the TypeScript agent scripts; GitHub MCP is not involved.
+
 ## Certificate-skill evidence
 
 - **Integrating agents:** a browser application calls a server-side model adapter.

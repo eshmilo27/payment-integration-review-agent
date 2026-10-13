@@ -8,6 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "live:evaluate": "npm run build && node dist/live-evaluation.js",
+    "agent-review": "npm run build && node dist/action-stage.js",
+    "agent-synthesis": "npm run build && node dist/action-synthesis.js",
     "test": "npm run build && node --test tests/*.test.js",
     "check": "npm run build && npm test"
   },

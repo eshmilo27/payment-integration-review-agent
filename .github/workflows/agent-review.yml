@@ -1,0 +1,79 @@
+name: Delegated agent review
+
+on:
+  workflow_dispatch:
+    inputs:
+      review_id:
+        description: Identifier for this review run
+        required: true
+        type: string
+      scenario:
+        description: Fictional payment integration scenario; never include sensitive data
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  specialist-review:
+    name: "${{ matrix.stage }} agent"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stage:
+          - planner
+          - payment-domain
+          - security-compliance
+          - reliability
+          - test-design
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Run specialist agent
+        env:
+          AGENT_OUTPUT_DIR: results
+          AGENT_SCENARIO: ${{ inputs.scenario }}
+          AGENT_STAGE: ${{ matrix.stage }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: node dist/action-stage.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: "${{ inputs.review_id }}-${{ matrix.stage }}"
+          path: results/${{ matrix.stage }}.json
+          if-no-files-found: error
+
+  synthesis:
+    name: synthesis agent
+    needs: specialist-review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "${{ inputs.review_id }}-*"
+          path: results
+          merge-multiple: true
+      - name: Run synthesis agent
+        env:
+          AGENT_RESULTS_DIR: results
+          AGENT_SCENARIO: ${{ inputs.scenario }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: node dist/action-synthesis.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: "${{ inputs.review_id }}-final-review"
+          path: results/final-review.json
+          if-no-files-found: error
