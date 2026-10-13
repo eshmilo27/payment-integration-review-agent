@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 24
+          node-version: 26
           cache: npm
       - run: npm ci
       - run: npm run build
@@ -43,7 +43,7 @@ jobs:
           AGENT_STAGE: ${{ matrix.stage }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: node dist/action-stage.js
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: "${{ inputs.review_id }}-${{ matrix.stage }}"
           path: results/${{ matrix.stage }}.json
@@ -57,11 +57,11 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 24
+          node-version: 26
           cache: npm
       - run: npm ci
       - run: npm run build
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: "${{ inputs.review_id }}-*"
           path: results
@@ -72,7 +72,7 @@ jobs:
           AGENT_SCENARIO: ${{ inputs.scenario }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: node dist/action-synthesis.js
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: "${{ inputs.review_id }}-final-review"
           path: results/final-review.json

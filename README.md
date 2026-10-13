@@ -20,7 +20,7 @@ Each stage is a separate model call with a specialist prompt. The orchestrator v
 
 ## Run locally
 
-Requirements: Node.js 20+ locally. GitHub Actions uses Node.js 24 with `actions/checkout@v5` and `actions/setup-node@v5`. Use either a direct Groq key or the existing resume-site Lambda proxy.
+Requirements: Node.js 20+ locally. The `Agent evaluation` workflow uses Node.js 24 and the `Delegated agent review` workflow uses Node.js 26, both with `actions/checkout@v5` and `actions/setup-node@v5`. Use either a direct Groq key or the existing resume-site Lambda proxy.
 
 ```bash
 npm install
@@ -78,7 +78,7 @@ The separate `Delegated agent review` workflow demonstrates asynchronous multi-a
 - reliability
 - test-design
 
-Each job makes one Groq call, validates its JSON result, and uploads a stage artifact. The dependent synthesis job downloads those artifacts, validates the handoffs, makes the final model call, and uploads `final-review.json`.
+Each job makes one Groq call, validates its JSON result, and uploads a stage artifact. The dependent synthesis job downloads those artifacts, validates the handoffs, makes the final model call, and uploads `final-review.json`. The workflow runs on Node.js 26 and uses `actions/upload-artifact@v7` and `actions/download-artifact@v8`.
 
 To run it from the GitHub CLI:
 
