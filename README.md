@@ -47,7 +47,7 @@ When `RESUME_AGENT_API_URL` is set, the app sends each bounded specialist prompt
 - input limits
 - malformed model output handling
 
-GitHub Actions runs build, tests, and the same deterministic checks on every push and pull request. Optional live evaluations can be enabled with the repository variable `ENABLE_LIVE_EVALUATION=true` and the `GROQ_API_KEY` secret. Live model evaluations should be treated as advisory because model output can vary.
+GitHub Actions runs build, tests, and the same deterministic checks on every push and pull request. Optional live evaluations can be enabled with the repository variable `ENABLE_LIVE_EVALUATION=true` and the `GROQ_API_KEY` secret. The live workflow runs one complete six-call review so it remains within the Groq free-tier tokens-per-minute budget; deterministic tests cover all evaluation fixtures. The model client retries temporary `429` rate-limit responses using the provider's retry guidance. Live model evaluations should be treated as advisory because model output can vary.
 
 ## How to see orchestration in GitHub Actions
 

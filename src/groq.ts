@@ -27,37 +27,48 @@ export class GroqClient implements ModelClient {
 
   async complete(systemPrompt: string, userPrompt: string, maxTokens: number): Promise<string> {
     if (!this.options.apiKey) throw new Error('GROQ_API_KEY is not configured');
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.options.timeoutMs);
-    try {
-      const response = await this.options.fetchImpl(this.options.apiUrl, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${this.options.apiKey}` },
-        body: JSON.stringify({
-          model: this.options.model,
-          temperature: 0.2,
-          max_tokens: maxTokens,
-          response_format: { type: 'json_object' },
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ]
-        }),
-        signal: controller.signal
-      });
-      if (!response.ok) {
-        const errorBody = await response.json().catch(() => null) as { error?: { message?: unknown } } | null;
-        const providerMessage = typeof errorBody?.error?.message === 'string'
-          ? errorBody.error.message.slice(0, 300)
-          : 'No provider error message was returned';
-        throw new Error(`model request failed with status ${response.status}: ${providerMessage}`);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.options.timeoutMs);
+      try {
+        const response = await this.options.fetchImpl(this.options.apiUrl, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', authorization: `Bearer ${this.options.apiKey}` },
+          body: JSON.stringify({
+            model: this.options.model,
+            temperature: 0.2,
+            max_tokens: maxTokens,
+            response_format: { type: 'json_object' },
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ]
+          }),
+          signal: controller.signal
+        });
+        if (response.status === 429 && attempt < 2) {
+          const retryAfterSeconds = Number(response.headers.get('retry-after'));
+          const delayMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+            ? Math.ceil(retryAfterSeconds * 1000)
+            : 5_000 * (attempt + 1);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+          continue;
+        }
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => null) as { error?: { message?: unknown } } | null;
+          const providerMessage = typeof errorBody?.error?.message === 'string'
+            ? errorBody.error.message.slice(0, 300)
+            : 'No provider error message was returned';
+          throw new Error(`model request failed with status ${response.status}: ${providerMessage}`);
+        }
+        const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+        const content = data.choices?.[0]?.message?.content?.trim();
+        if (!content) throw new Error('model returned an empty response');
+        return content;
+      } finally {
+        clearTimeout(timer);
       }
-      const data = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
-      const content = data.choices?.[0]?.message?.content?.trim();
-      if (!content) throw new Error('model returned an empty response');
-      return content;
-    } finally {
-      clearTimeout(timer);
     }
+    throw new Error('model request exceeded rate-limit retry attempts');
   }
 }
